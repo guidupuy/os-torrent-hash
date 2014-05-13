@@ -1,23 +1,31 @@
 {
   "name": "os-torrent-hash",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Compute opensubtitles movie hash from a torrent file",
-  "author": {
-    "name": "guidupuy"
-  },
+  "author": "guidupuy",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "http://github.com/guidupuy/os-torrent-hash.git"
   },
   "dependencies": {
-    "xmlrpc": "latest",
-    "async": "*"
+    "read-torrent": "1.0.x",
+    "torrent-stream": "^0.10.1",
+    "q": "2.0.x",
+    "underscore": "1.6.x"
   },
-  "readme": "os-torrent-hash\n================n\nCompute opensubtitles movie hash from a torrent file\n",
-  "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/guidupuy/os-torrent-hash/issues"
   },
-  "homepage": "https://github.com/guidupuy/os-torrent-hash"
+  "homepage": "https://github.com/guidupuy/os-torrent-hash",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "opensubtitles",
+    "torrent",
+    "hash",
+    "movie"
+  ],
+  "license": "MIT"
 }

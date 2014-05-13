@@ -1,6 +1,7 @@
 var readTorrent = require('read-torrent');
 var torrentStream = require('torrent-stream');
 var Q = require('q');
+var _ = require('underscore');
 
 /**
  * read 64 bits from buffer starting at offset as LITTLE ENDIAN hex
@@ -93,7 +94,7 @@ var padLeft = function(str, c, length) {
  * @return {Q.Promise}
  */
 var computeMovieHash = function(torrentUrl, options){
-	var deferred = Q.deferred();
+	var deferred = Q.defer();
 
     var chunk_size = 65536;
     var buf_pad = new Buffer(chunk_size);

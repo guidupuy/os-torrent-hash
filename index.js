@@ -118,8 +118,7 @@ var computeMovieHash = function(torrentUrl, _engine){
 
     readTorrent(torrentUrl, function(err, torrent) {
         if(err) {
-            App.vent.trigger('error', err);
-            App.vent.trigger('stream:stop');
+            deferred.reject(new Error(err));
         } else {
             // Get the opening and closing chunks of the file
             var engine = _engine || torrentStream(torrent);

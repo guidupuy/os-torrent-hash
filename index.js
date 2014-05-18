@@ -93,8 +93,8 @@ var padLeft = function(str, c, length) {
  * @param options
  * @return {Q.Promise}
  */
-var computeMovieHash = function(torrentUrl, options){
-	var deferred = Q.defer();
+var computeMovieHash = function(torrentUrl, _engine){
+    var deferred = Q.defer();
 
     var chunk_size = 65536;
     var buf_pad = new Buffer(chunk_size);
@@ -109,9 +109,9 @@ var computeMovieHash = function(torrentUrl, options){
             chksum = sumHex64bits(chksum, t_chksum[2]);
             chksum = chksum.substr(-16);
             deferred.resolve({
-            	movieHash: padLeft(chksum, '0', 16), 
-            	fileSize: file_size,
-            	fileName: file_name
+                movieHash: padLeft(chksum, '0', 16), 
+                fileSize: file_size,
+                fileName: file_name
             });
         }
     }
@@ -122,21 +122,13 @@ var computeMovieHash = function(torrentUrl, options){
             App.vent.trigger('stream:stop');
         } else {
             // Get the opening and closing chunks of the file
-            var engine = torrentStream(torrent);
+            var engine = _engine || torrentStream(torrent);
 
             engine.on('ready', function() {
-            	// Find the video file within the torrent
-            	var file;
-            	if(options.suffix){
-	                file = _.find(engine.files, function(file){ 
-	                    var suffix='.mp4'; 
-	                    return file.name.indexOf(suffix, file.name.length - suffix.length) !== -1; 
-	                }) || engine.files[0];
-            	} else if(options.index){
-            		file = engine.files[options.index];
-            	} else {
-            		file = engine.files[0];
-            	}
+                // Video file is the biggest one within the torrent
+                var file = _.sortBy(engine.files, function(file){
+                    return -file.length;
+                })[0];
 
                 // Get file meta-data
                 file_name = file.name;
@@ -166,9 +158,9 @@ var computeMovieHash = function(torrentUrl, options){
         }
     });
 
-	return deferred.promise;
+    return deferred.promise;
 }
 
-exports.computeHash = function(torrentUrl, options) {
-	return computeMovieHash(torrentUrl, options);
+exports.computeHash = function(torrentUrl, engine) {
+    return computeMovieHash(torrentUrl, engine);
 }

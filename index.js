@@ -123,7 +123,7 @@ var computeMovieHash = function(torrentUrl, _engine){
             // Get the opening and closing chunks of the file
             var engine = _engine || torrentStream(torrent);
 
-            engine.on('ready', function() {
+            function whenEngineReady () {
                 // Video file is the biggest one within the torrent
                 var file = _.sortBy(engine.files, function(file){
                     return -file.length;
@@ -153,7 +153,15 @@ var computeMovieHash = function(torrentUrl, _engine){
                     var buffer = Buffer.concat([data, buf_pad]);
                     addChecksum(checksumBuffer(buffer, 16), 'closing chunk');
                 })
-            });
+            }
+
+            if(engine.files && engine.files.length > 0){
+                whenEngineReady();
+            } else {
+                engine.on('ready', function() {
+                    whenEngineReady()
+                });
+            }
         }
     });
 

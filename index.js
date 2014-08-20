@@ -102,7 +102,7 @@ var computeMovieHash = function(torrentUrl, _engine){
     var file_name = null;
     var t_chksum = [];
 
-    function addChecksum (chksum_part, name) {
+    function addChecksum (chksum_part) {
         t_chksum.push(chksum_part);
         if(t_chksum.length == 3) {
             var chksum = sumHex64bits(t_chksum[0], t_chksum[1]);
@@ -134,15 +134,22 @@ var computeMovieHash = function(torrentUrl, _engine){
                 file_size = file.length;
                 addChecksum(file_size.toString(16), "filesize");
 
+                var stbuf=[],enbuf=[];
+
                 // Opening chunk
                 var openingStream = file.createReadStream({
                     start: 0,
                     end: chunk_size-1
                 });
+
                 openingStream.on('data', function(data) {
-                    var buffer = Buffer.concat([data, buf_pad]);
-                    addChecksum(checksumBuffer(buffer, 16), 'opening chunk');
+                    stbuf.push(data)
                 })
+                .on('end', function () {  // done
+                    stbuf = Buffer.concat(stbuf);
+                    var buffer = Buffer.concat([stbuf, buf_pad]);
+                    addChecksum(checksumBuffer(buffer, 16));
+                });
 
                 // Closing chunk
                 var closingStream = file.createReadStream({
@@ -150,9 +157,13 @@ var computeMovieHash = function(torrentUrl, _engine){
                     end: file_size -1
                 });
                 closingStream.on('data', function(data) {
-                    var buffer = Buffer.concat([data, buf_pad]);
-                    addChecksum(checksumBuffer(buffer, 16), 'closing chunk');
+                    enbuf.push(data)
                 })
+                .on('end', function () {  // done
+                    enbuf = Buffer.concat(enbuf);
+                    var buffer = Buffer.concat([enbuf, buf_pad]);
+                    addChecksum(checksumBuffer(buffer, 16));
+                });
             }
 
             if(engine.files && engine.files.length > 0){

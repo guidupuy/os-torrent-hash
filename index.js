@@ -1,5 +1,4 @@
 var readTorrent = require('read-torrent');
-var torrentStream = require('torrent-stream');
 var Q = require('q');
 var _ = require('underscore');
 
@@ -90,10 +89,10 @@ var padLeft = function(str, c, length) {
  * compute a torrent's movie hash
  *
  * @param torrentUrl
- * @param options
+ * @param engine
  * @return {Q.Promise}
  */
-var computeMovieHash = function(torrentUrl, _engine){
+var computeMovieHash = function(torrentUrl, engine){
     var deferred = Q.defer();
 
     var chunk_size = 65536;
@@ -120,9 +119,6 @@ var computeMovieHash = function(torrentUrl, _engine){
         if(err) {
             deferred.reject(new Error(err));
         } else {
-            // Get the opening and closing chunks of the file
-            var engine = _engine || torrentStream(torrent);
-
             function whenEngineReady () {
                 // Video file is the biggest one within the torrent
                 var file = _.sortBy(engine.files, function(file){
@@ -142,28 +138,41 @@ var computeMovieHash = function(torrentUrl, _engine){
                     end: chunk_size-1
                 });
 
-                openingStream.on('data', function(data) {
-                    stbuf.push(data)
-                })
-                .on('end', function () {  // done
+                function onDataOpeningStream (data) {
+                    stbuf.push(data);
+                    openingStream.removeListener('data', onDataOpeningStream);
+                }
+
+                function onEndOpeningStream () {  // done
                     stbuf = Buffer.concat(stbuf);
                     var buffer = Buffer.concat([stbuf, buf_pad]);
                     addChecksum(checksumBuffer(buffer, 16));
-                });
+                    openingStream.removeListener('end', onEndOpeningStream);
+                }
+
+                openingStream.on('data', onDataOpeningStream);
+                openingStream.on('end', onEndOpeningStream);
 
                 // Closing chunk
                 var closingStream = file.createReadStream({
                     start: file_size - chunk_size,
                     end: file_size -1
                 });
-                closingStream.on('data', function(data) {
-                    enbuf.push(data)
-                })
-                .on('end', function () {  // done
+
+                function onDataClosingStream (data) {
+                    enbuf.push(data);
+                    closingStream.removeListener('data', onDataClosingStream)
+                }
+
+                function onEndClosingStream () {
                     enbuf = Buffer.concat(enbuf);
                     var buffer = Buffer.concat([enbuf, buf_pad]);
                     addChecksum(checksumBuffer(buffer, 16));
-                });
+                    closingStream.removeListener('end', onEndClosingStream);
+                }
+
+                closingStream.on('data', onDataClosingStream);
+                closingStream.on('end', onEndClosingStream);
             }
 
             if(engine.files && engine.files.length > 0){

@@ -1,6 +1,6 @@
 {
   "name": "os-torrent-hash",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "Compute opensubtitles movie hash from a torrent file",
   "author": "guidupuy",
   "main": "index.js",
@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "read-torrent": "1.0.x",
-    "torrent-stream": "^0.10.1",
     "q": "2.0.x",
     "underscore": "1.6.x"
   },

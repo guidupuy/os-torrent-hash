@@ -7,7 +7,7 @@ Example:
 computeMovieHash(torrentUrl, engine) // engine is a torrent-stream engine
     .then(function (res) {
         res.movieHash; // the movie hash
-        res.fileSize;  // the file name
+        res.fileSize;  // the file size
         res.fileName;  // the file name
     })
     .catch(function (error) {
